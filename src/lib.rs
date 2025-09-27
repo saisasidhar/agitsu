@@ -1,13 +1,15 @@
-use gstreamer::{glib, plugin_define};
 use gstreamer::prelude::*;
+use gstreamer_base::gst;
 use gstreamer_base::subclass::prelude::*;
 
+mod filter;
 
-fn plugin_init(plugin: &gstreamer::Plugin) -> Result<(), glib::BoolError> {
+fn plugin_init(plugin: &gst::Plugin) -> Result<(), glib::BoolError> {
+    filter::register(plugin)?;
     Ok(())
 }
 
-plugin_define!(
+gst::plugin_define!(
     agitsu,
     "agitsu, a gstreamer plugin to invert negative frame to positive",
     plugin_init,
