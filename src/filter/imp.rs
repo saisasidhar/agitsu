@@ -1,6 +1,6 @@
 use glib::subclass::object::ObjectImpl;
 use glib::subclass::prelude::ObjectSubclass;
-use gstreamer_base::gst::{Caps, PadDirection};
+use gstreamer_base::gst::{Caps, PadDirection, PadTemplate, PadPresence};
 use gstreamer_base::subclass::BaseTransformMode;
 use gstreamer_base::subclass::base_transform::BaseTransformImpl;
 use gstreamer_base::{BaseTransform, gst};
@@ -34,6 +34,36 @@ impl ElementImpl for AgitsuFilter {
         });
 
         Some(&*ELEMENT_METADATA)
+    }
+
+    fn pad_templates() -> &'static [PadTemplate] {
+        static PAD_TEMPLATES: LazyLock<Vec<PadTemplate>> = LazyLock::new(|| {
+            let caps = gstreamer_video::VideoCapsBuilder::new()
+                .format_list([VideoFormat::Rgb])
+                .build();
+            let src_pad_template = PadTemplate::new(
+                "src",
+                PadDirection::Src,
+                PadPresence::Always,
+                &caps,
+            )
+                .unwrap();
+
+            let caps = gstreamer_video::VideoCapsBuilder::new()
+                .format(VideoFormat::Rgb)
+                .build();
+            let sink_pad_template = PadTemplate::new(
+                "sink",
+                PadDirection::Sink,
+                PadPresence::Always,
+                &caps,
+            )
+                .unwrap();
+
+            vec![src_pad_template, sink_pad_template]
+        });
+
+        PAD_TEMPLATES.as_ref()
     }
 }
 
