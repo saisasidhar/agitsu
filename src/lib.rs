@@ -2,7 +2,7 @@ use gstreamer::prelude::*;
 use gstreamer_base::gst;
 use gstreamer_base::subclass::prelude::*;
 
-mod filter;
+pub mod filter;
 
 fn plugin_init(plugin: &gst::Plugin) -> Result<(), glib::BoolError> {
     filter::register(plugin)?;

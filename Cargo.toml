@@ -15,5 +15,9 @@ gstreamer-video = "0.24.2"
 
 [lib]
 name = "agitsu"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 path = "src/lib.rs"
+
+[[bin]]
+name = "agitsu-jpg-preview"
+path = "src/bin/jpg_preview.rs"

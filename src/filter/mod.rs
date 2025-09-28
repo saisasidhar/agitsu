@@ -4,6 +4,7 @@ use gstreamer_base::{BaseTransform, gst};
 use gstreamer_video::VideoFilter;
 
 mod imp;
+pub mod processing;
 
 glib::wrapper! {
     pub struct AgitsuFilter(ObjectSubclass<imp::AgitsuFilter>) @extends VideoFilter, BaseTransform, gst::Element, gst::Object;
