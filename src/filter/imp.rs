@@ -1,13 +1,12 @@
 use glib::subclass::object::ObjectImpl;
 use glib::subclass::prelude::ObjectSubclass;
-use gstreamer::subclass::prelude::{ElementImpl, GstObjectImpl};
 use gstreamer_base::gst::{Caps, PadDirection};
 use gstreamer_base::subclass::BaseTransformMode;
 use gstreamer_base::subclass::base_transform::BaseTransformImpl;
 use gstreamer_base::{BaseTransform, gst};
-use gstreamer_video::VideoFormat;
-use gstreamer_video::gst::Structure;
+use gstreamer_video::{VideoFormat};
 use std::sync::LazyLock;
+use gstreamer_base::subclass::prelude::{ElementImpl, GstObjectImpl};
 
 #[derive(Default)]
 pub struct AgitsuFilter {}
@@ -23,7 +22,7 @@ impl ObjectSubclass for AgitsuFilter {
 
 impl ObjectImpl for AgitsuFilter {}
 
-impl gstreamer_base::subclass::prelude::ElementImpl for AgitsuFilter {
+impl ElementImpl for AgitsuFilter {
     fn metadata() -> Option<&'static gst::subclass::ElementMetadata> {
         static ELEMENT_METADATA: LazyLock<gst::subclass::ElementMetadata> = LazyLock::new(|| {
             gst::subclass::ElementMetadata::new(
@@ -38,7 +37,8 @@ impl gstreamer_base::subclass::prelude::ElementImpl for AgitsuFilter {
     }
 }
 
-impl gstreamer_base::subclass::prelude::GstObjectImpl for AgitsuFilter {}
+impl GstObjectImpl for AgitsuFilter {}
+
 
 impl BaseTransformImpl for AgitsuFilter {
     const MODE: BaseTransformMode = BaseTransformMode::AlwaysInPlace;
