@@ -64,27 +64,9 @@ impl ElementImpl for AgitsuFilter {
 impl GstObjectImpl for AgitsuFilter {}
 
 impl BaseTransformImpl for AgitsuFilter {
-    const MODE: BaseTransformMode = BaseTransformMode::AlwaysInPlace;
+    const MODE: BaseTransformMode = BaseTransformMode::NeverInPlace;
     const PASSTHROUGH_ON_SAME_CAPS: bool = false;
     const TRANSFORM_IP_ON_PASSTHROUGH: bool = false;
-
-    fn transform_caps(
-        &self,
-        direction: PadDirection,
-        caps: &Caps,
-        filter: Option<&Caps>,
-    ) -> Option<Caps> {
-        let caps = Caps::builder("video/x-raw")
-            .field("format", &VideoFormat::Rgb.to_str())
-            .build();
-        Some(caps)
-    }
-
-    fn accept_caps(&self, direction: PadDirection, caps: &Caps) -> bool {
-        caps.iter().any(|s| {
-            s.name() == "video/x-raw" && s.get::<String>("format").map_or(false, |f| f == "RGB")
-        })
-    }
 }
 
 impl VideoFilterImpl for AgitsuFilter {
