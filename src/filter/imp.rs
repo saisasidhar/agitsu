@@ -15,6 +15,9 @@ use gstreamer_video::{VideoFilter, VideoFormat, VideoFrameExt, VideoFrameRef};
 use ndarray::{Array3, ArrayView3, ArrayViewMut3, Zip, range};
 use std::sync::{LazyLock, Mutex};
 
+static DBG_CAT: LazyLock<gst::DebugCategory> =
+    LazyLock::new(|| gst::DebugCategory::new("agitsu", gst::DebugColorFlags::empty(), Some("")));
+
 #[derive(Debug, Clone)]
 struct AgitsuSettings {
     film_base_red: f64,
@@ -79,16 +82,34 @@ impl ObjectImpl for AgitsuFilter {
             "film-base-red" => {
                 let v = _value.get::<f64>().unwrap();
                 let mut settings = self.settings.lock().unwrap();
+                gst::info!(
+                    DBG_CAT,
+                    "Changing film_base_red from {} to {}",
+                    settings.film_base_red,
+                    v
+                );
                 settings.film_base_red = v;
             }
             "film-base-green" => {
                 let v = _value.get::<f64>().unwrap();
                 let mut settings = self.settings.lock().unwrap();
+                gst::info!(
+                    DBG_CAT,
+                    "Changing film_base_green from {} to {}",
+                    settings.film_base_green,
+                    v
+                );
                 settings.film_base_green = v;
             }
             "film-base-blue" => {
                 let v = _value.get::<f64>().unwrap();
                 let mut settings = self.settings.lock().unwrap();
+                gst::info!(
+                    DBG_CAT,
+                    "Changing film_base_blue from {} to {}",
+                    settings.film_base_blue,
+                    v
+                );
                 settings.film_base_blue = v;
             }
             _ => unimplemented!(),
