@@ -1,6 +1,8 @@
 use crate::filter::processing;
 use glib::subclass::object::ObjectImpl;
 use glib::subclass::prelude::ObjectSubclass;
+use glib::value::ToValue;
+use glib::{ParamSpec, ParamSpecBuilderExt, Type, Value};
 use gstreamer_base::gst::{
     BufferRef, Caps, FlowError, FlowSuccess, PadDirection, PadPresence, PadTemplate,
 };
@@ -10,11 +12,30 @@ use gstreamer_base::subclass::prelude::{ElementImpl, GstObjectImpl};
 use gstreamer_base::{BaseTransform, gst};
 use gstreamer_video::subclass::prelude::VideoFilterImpl;
 use gstreamer_video::{VideoFilter, VideoFormat, VideoFrameExt, VideoFrameRef};
-use ndarray::{Array3, ArrayView3, ArrayViewMut3, Zip};
-use std::sync::LazyLock;
+use ndarray::{Array3, ArrayView3, ArrayViewMut3, Zip, range};
+use std::sync::{LazyLock, Mutex};
+
+#[derive(Debug, Clone)]
+struct AgitsuSettings {
+    film_base_red: f64,
+    film_base_green: f64,
+    film_base_blue: f64,
+}
+
+impl Default for AgitsuSettings {
+    fn default() -> Self {
+        AgitsuSettings {
+            film_base_red: 0.6454267,
+            film_base_green: 0.4690254,
+            film_base_blue: 0.35811886,
+        }
+    }
+}
 
 #[derive(Default)]
-pub struct AgitsuFilter {}
+pub struct AgitsuFilter {
+    settings: Mutex<AgitsuSettings>,
+}
 
 impl AgitsuFilter {}
 
@@ -25,7 +46,73 @@ impl ObjectSubclass for AgitsuFilter {
     type ParentType = VideoFilter;
 }
 
-impl ObjectImpl for AgitsuFilter {}
+impl ObjectImpl for AgitsuFilter {
+    fn properties() -> &'static [ParamSpec] {
+        // metadata
+        static PROPERTIES: LazyLock<Vec<glib::ParamSpec>> = LazyLock::new(|| {
+            vec![
+                glib::ParamSpecDouble::builder("film-base-red")
+                    .blurb("red channel correction for film base")
+                    .minimum(0.)
+                    .maximum(1.)
+                    .default_value(1.)
+                    .build(),
+                glib::ParamSpecDouble::builder("film-base-green")
+                    .blurb("green channel correction for film base")
+                    .minimum(0.)
+                    .maximum(1.)
+                    .default_value(1.)
+                    .build(),
+                glib::ParamSpecDouble::builder("film-base-blue")
+                    .blurb("green channel correction for film base")
+                    .minimum(0.)
+                    .maximum(1.)
+                    .default_value(1.)
+                    .build(),
+            ]
+        });
+        PROPERTIES.as_ref()
+    }
+
+    fn set_property(&self, _id: usize, _value: &Value, _pspec: &ParamSpec) {
+        match _pspec.name() {
+            "film-base-red" => {
+                let v = _value.get::<f64>().unwrap();
+                let mut settings = self.settings.lock().unwrap();
+                settings.film_base_red = v;
+            }
+            "film-base-green" => {
+                let v = _value.get::<f64>().unwrap();
+                let mut settings = self.settings.lock().unwrap();
+                settings.film_base_green = v;
+            }
+            "film-base-blue" => {
+                let v = _value.get::<f64>().unwrap();
+                let mut settings = self.settings.lock().unwrap();
+                settings.film_base_blue = v;
+            }
+            _ => unimplemented!(),
+        }
+    }
+
+    fn property(&self, _id: usize, _pspec: &ParamSpec) -> Value {
+        match _pspec.name() {
+            "film-base-red" => {
+                let settings = self.settings.lock().unwrap();
+                settings.film_base_red.to_value()
+            }
+            "film-base-green" => {
+                let settings = self.settings.lock().unwrap();
+                settings.film_base_green.to_value()
+            }
+            "film-base-blue" => {
+                let settings = self.settings.lock().unwrap();
+                settings.film_base_blue.to_value()
+            }
+            _ => unimplemented!(),
+        }
+    }
+}
 
 impl ElementImpl for AgitsuFilter {
     fn metadata() -> Option<&'static gst::subclass::ElementMetadata> {
@@ -33,7 +120,7 @@ impl ElementImpl for AgitsuFilter {
             gst::subclass::ElementMetadata::new(
                 "Agitsu Filter",
                 "Filter/Effect/Converter/Video",
-                "Converts an RGB frame of film negative to positive",
+                "Converts an RGB frame for film negative to positive",
                 "Sai Sasidhar Maddali",
             )
         });
@@ -76,7 +163,12 @@ impl VideoFilterImpl for AgitsuFilter {
         inframe: &VideoFrameRef<&BufferRef>,
         outframe: &mut VideoFrameRef<&mut BufferRef>,
     ) -> Result<FlowSuccess, FlowError> {
-        let film_base: [f32; 3] = [0.6454267, 0.4690254, 0.35811886];
+        let settings = self.settings.lock().unwrap();
+        let film_base: [f32; 3] = [
+            settings.film_base_red as f32,
+            settings.film_base_green as f32,
+            settings.film_base_blue as f32,
+        ];
         let info = inframe.info();
         let width = info.width() as usize;
         let height = info.height() as usize;
