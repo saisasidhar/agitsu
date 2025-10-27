@@ -22,3 +22,7 @@ path = "src/lib.rs"
 [[bin]]
 name = "agitsu-jpg-preview"
 path = "src/bin/jpg_preview.rs"
+
+[[bin]]
+name = "agitsu-capture-assistant"
+path = "src/bin/capture_assistant.rs"
